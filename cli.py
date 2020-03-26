@@ -1,47 +1,75 @@
 import os
 import subprocess
+import pprint
 
-scripts_dir = './scripts/'
+class console():
 
-default_script = scripts_dir + "ws.c"
-default_out = scripts_dir + "ws.out"
-code = ""
+    def __init__(self):
+        self.default_script = "ws.c"
+        self.working_code = self.write_overhead()
+        
+    def write_overhead(self):
+        return "#include <stdio.h> \nint main()\n{ \n"
 
-def write_overhead(f):
-    f.write("#include <stdio.h> \n")
-    f.write("int main(){ \n")
+    def update_and_execute(self):
+        # executes and returns the updated code
+        
+        try_code = self.working_code + self.inp + "\nreturn 0;\n}"
 
-def complete_and_execute(f):
+        # write code to file for execution
+        f = open(self.default_script, "w")
+        f.write(try_code)
+        f.close()
+        
+        compile_cmd = "gcc {}".format(self.default_script)
+        execute_cmd = "./a.out"
+        
+        # compile using gcc and check for error, if error skip line
+        process_1 = subprocess.Popen(compile_cmd.split(), stdout=subprocess.PIPE, stderr = subprocess.PIPE)
+        stdout_1, stderr_1 = process_1.communicate()
+        
+        if(stderr_1 != None and "error" in stderr_1.decode("utf-8")):
+            print(stderr_1)
+            return 
 
-    f.write("return 0;\n}")
-    # bashCommand = "gcc {} -o {}".format(default_script, default_out)
-    
-    
-    # process = subprocess.Popen(bashCommand.split(), stdout=subprocess.PIPE)
-    # output, error = process.communicate()
+        # execute .out
+        process_2 = subprocess.Popen(execute_cmd.split(), stdout=subprocess.PIPE)
+        stdout_2, stderr_2 = process_2.communicate()
+
+        if(stderr_2 != None and "error" in stderr_2.decode("utf-8")):
+            print(stderr_2)
+            return
+        else:
+            print(stdout_2.decode("utf-8")) 
+
+        self.working_code = self.working_code + self.inp + "\n"
+
+    def write_intro(self):
+        print()
+        print("Running C Shell; v1.0;")
+        print("using workspace: {}".format(self.default_script))
+        print("imported libraries: stdio.h")
+        print()
 
 
+    def run_cli(self):
 
+        while True:
+            self.inp = input(">> ")
+            
+            if(self.inp == "exit"):
+                exit()
+            else:
+                self.update_and_execute()
+                # print(code)
+        
 
 if __name__ == "__main__":
+    new_console = console()
+    new_console.write_intro()
+    new_console.run_cli()
 
-    f = open(default_script, "w")
+    
+    
 
-    print("Running C Shell; v1.0;")
-    print("using workspace: {}".format(default_script))
-    print("imported libraries: stdio.h")
-
-    write_overhead(f)
-
-
-    while True:
-
-        inp = input(">")
-        
-        if(inp == "exit"):
-            exit()
-            f.close()
-        else:
-            f.write(inp+";\n")
-            # complete_and_execute(f)
-            # print(inp)
+    
